@@ -1,0 +1,42 @@
+{
+    "kind": "List",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "gitlab-image-streams",
+        "annotations": {
+            "description": "ImageStream definitions to create simple GitLab instance"
+        }
+    },
+    "items": [
+        {
+            "kind": "ImageStream",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "gitlab-ce"
+            },
+            "spec": {
+                "dockerImageRepository": "gitlab/gitlab-ce",
+                "tags": [
+                    {
+                        "name": "latest"
+                    }
+                ]
+            }
+        },
+        {
+            "kind": "ImageStream",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "gitlab-ce-provision"
+            },
+            "spec": {
+                "dockerImageRepository": "jpechane/gitlab-ce-provision",
+                "tags": [
+                    {
+                        "name": "latest"
+                    }
+                ]
+            }
+        }
+    ]
+}

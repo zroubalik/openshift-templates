@@ -1,0 +1,319 @@
+{
+    "kind": "Template",
+    "apiVersion": "v1",
+    "metadata": {
+        "annotations": {
+            "description": "Template for deployment of simple GitLab instance (without persistence)"
+        },
+        "name": "gitlab-non-persistent"
+    },
+    "labels": {
+        "template": "gitlab-non-persistent"
+    },
+    "parameters": [
+        {
+            "description": "The name for the application.",
+            "name": "APPLICATION_NAME",
+            "value": "gitlab",
+            "required": true
+        },
+        {
+            "description": "Hostname for GitLab application service",
+            "name": "GITLAB_HOSTNAME",
+            "value": "gitlab.cloudapps.example.com",
+            "required": true
+        },
+        {
+            "description": "GitLab's initial root password",
+            "name": "GITLAB_ROOT_PASSWORD",
+            "value": "CHANGEME",
+            "required": true
+        },
+        {
+            "description": "Email of pre-created GitLab user",
+            "name": "GITLAB_DEFAULT_USER_EMAIL",
+            "value": "jpechane@redhat.com",
+            "required": false
+        },
+        {
+            "description": "Username of pre-created GitLab user",
+            "name": "GITLAB_DEFAULT_USER_USERNAME",
+            "value": "xpaasqe",
+            "required": false
+        },
+        {
+            "description": "Password of pre-created GitLab user",
+            "name": "GITLAB_DEFAULT_USER_PASSWORD",
+            "value": "JBoss.123",
+            "required": false
+        },
+        {
+            "description": "Full name of pre-created GitLab user",
+            "name": "GITLAB_DEFAULT_USER_FULLNAME",
+            "value": "xPaaS QE User",
+            "required": false
+        },
+        {
+            "description": "Name of pre-created GitLab group",
+            "name": "GITLAB_DEFAULT_GROUP_NAME",
+            "value": "ose3",
+            "required": false
+        },
+        {
+            "description": "Path of pre-created GitLab group",
+            "name": "GITLAB_DEFAULT_GROUP_PATH",
+            "value": "ose3",
+            "required": false
+        },
+        {
+            "description": "Description of pre-created GitLab group",
+            "name": "GITLAB_DEFAULT_GROUP_DESCRIPTION",
+            "value": "xPaaS QE Group",
+            "required": false
+        },
+        {
+            "description": "Namespace in which the ImageStreams for Gitlab images are installed. These ImageStreams are normally installed in the openshift namespace. You should only need to modify this if you've installed the ImageStreams in a different namespace/project.",
+            "name": "IMAGE_STREAM_NAMESPACE",
+            "value": "openshift",
+            "required": true
+        }
+    ],
+    "objects": [
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "spec": {
+                "ports": [
+                    {
+                        "port": 80,
+                        "targetPort": 80
+                    }
+                ],
+                "selector": {
+                    "deploymentConfig": "${APPLICATION_NAME}"
+                }
+            },
+            "metadata": {
+                "name": "${APPLICATION_NAME}-http",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                },
+                "annotations": {
+                    "description": "The GitLab's http port."
+                }
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "spec": {
+                "ports": [
+                    {
+                        "port": 443,
+                        "targetPort": 443
+                    }
+                ],
+                "selector": {
+                    "deploymentConfig": "${APPLICATION_NAME}"
+                }
+            },
+            "metadata": {
+                "name": "${APPLICATION_NAME}-https",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                },
+                "annotations": {
+                    "description": "The GitLab's https port."
+                }
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "spec": {
+                "ports": [
+                    {
+                        "port": 22,
+                        "targetPort": 22
+                    }
+                ],
+                "selector": {
+                    "deploymentConfig": "${APPLICATION_NAME}"
+                }
+            },
+            "metadata": {
+                "name": "${APPLICATION_NAME}-ssh",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                },
+                "annotations": {
+                    "description": "The GitLab's ssh port."
+                }
+            }
+        },
+        {
+            "kind": "Route",
+            "apiVersion": "v1",
+            "id": "${APPLICATION_NAME}-http",
+            "metadata": {
+                "name": "${APPLICATION_NAME}",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                },
+                "annotations": {
+                    "description": "Route for GitLab server."
+                }
+            },
+            "spec": {
+                "host": "${GITLAB_HOSTNAME}",
+                "to": {
+                    "name": "${APPLICATION_NAME}-http"
+                }
+            }
+        },
+        {
+            "kind": "DeploymentConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${APPLICATION_NAME}",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                }
+            },
+            "spec": {
+                "strategy": {
+                    "type": "Recreate"
+                },
+                "triggers": [
+                    {
+                        "type": "ImageChange",
+                        "imageChangeParams": {
+                            "automatic": true,
+                            "containerNames": [
+                                "${APPLICATION_NAME}"
+                            ],
+                            "from": {
+                                "kind": "ImageStreamTag",
+                                "namespace": "${IMAGE_STREAM_NAMESPACE}",
+                                "name": "gitlab-ce:latest"
+                            }
+                        }
+                    },
+                    {
+                        "type": "ImageChange",
+                        "imageChangeParams": {
+                            "automatic": true,
+                            "containerNames": [
+                                "${APPLICATION_NAME}-provision"
+                            ],
+                            "from": {
+                                "kind": "ImageStreamTag",
+                                "namespace": "${IMAGE_STREAM_NAMESPACE}",
+                                "name": "gitlab-ce-provision:latest"
+                            }
+                        }
+                    },
+                    {
+                        "type": "ConfigChange"
+                    }
+                ],
+                "replicas": 1,
+                "selector": {
+                    "deploymentConfig": "${APPLICATION_NAME}"
+                },
+                "template": {
+                    "metadata": {
+                        "name": "${APPLICATION_NAME}",
+                        "labels": {
+                            "deploymentConfig": "${APPLICATION_NAME}",
+                            "application": "${APPLICATION_NAME}"
+                        }
+                    },
+                    "spec": {
+			"serviceAccount": "gitlab",
+			"securityContext": {
+				"runAsUser": 0
+			},
+                        "terminationGracePeriodSeconds": 60,
+                        "containers": [
+                            {
+                                "name": "${APPLICATION_NAME}",
+                                "image": "gitlab-ce",
+                                "ports": [
+                                    {
+                                        "containerPort": 22,
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 80,
+                                        "protocol": "TCP"
+                                    },
+                                    {
+                                        "containerPort": 443,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "env": [
+                                    {
+                                        "name": "GITLAB_ROOT_PASSWORD",
+                                        "value": "${GITLAB_ROOT_PASSWORD}"
+                                    },
+                                    {
+                                        "name": "GITLAB_HOST",
+                                        "value": "http://${GITLAB_HOSTNAME}"
+                                    },
+                                    {
+                                        "name": "GITLAB_OMNIBUS_CONFIG",
+                                        "value": "external_url 'http://${GITLAB_HOSTNAME}'; gitlab_rails['lfs_enabled'] = true;"
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "${APPLICATION_NAME}-provision",
+                                "image": "gitlab-ce-provision",
+                                "env": [
+                                    {
+                                        "name": "GITLAB_ROOT_PASSWORD",
+                                        "value": "${GITLAB_ROOT_PASSWORD}"
+                                    },
+                                    {
+                                        "name": "GITLAB_HOST",
+                                        "value": "http://${GITLAB_HOSTNAME}"
+                                    },
+                                    {
+                                        "name": "GITLAB_DEFAULT_USER_EMAIL",
+                                        "value": "${GITLAB_DEFAULT_USER_EMAIL}"
+                                    },
+                                    {
+                                        "name": "GITLAB_DEFAULT_USER_USERNAME",
+                                        "value": "${GITLAB_DEFAULT_USER_USERNAME}"
+                                    },
+                                    {
+                                        "name": "GITLAB_DEFAULT_USER_PASSWORD",
+                                        "value": "${GITLAB_DEFAULT_USER_PASSWORD}"
+                                    },
+                                    {
+                                        "name": "GITLAB_DEFAULT_USER_FULLNAME",
+                                        "value": "${GITLAB_DEFAULT_USER_FULLNAME}"
+                                    },
+                                    {
+                                        "name": "GITLAB_DEFAULT_GROUP_NAME",
+                                        "value": "${GITLAB_DEFAULT_GROUP_NAME}"
+                                    },
+                                    {
+                                        "name": "GITLAB_DEFAULT_GROUP_PATH",
+                                        "value": "${GITLAB_DEFAULT_GROUP_PATH}"
+                                    },
+                                    {
+                                        "name": "GITLAB_DEFAULT_GROUP_DESCRIPTION",
+                                        "value": "${GITLAB_DEFAULT_GROUP_DESCRIPTION}"
+                                    } 
+                                ]
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ]
+}
