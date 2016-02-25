@@ -201,7 +201,7 @@
                             "from": {
                                 "kind": "ImageStreamTag",
                                 "namespace": "${IMAGE_STREAM_NAMESPACE}",
-                                "name": "gitlab-ce:latest"
+                                "name": "gitlab-ce:8.5.1"
                             }
                         }
                     },
