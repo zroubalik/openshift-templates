@@ -54,6 +54,12 @@
             "required": false
         },
         {
+            "description": "Number of projects that can be created by the default user",
+            "name": "GITLAB_DEFAULT_USER_PROJECT_LIMIT",
+            "value": "1000",
+            "required": false
+        },
+        {
             "description": "Name of pre-created GitLab group",
             "name": "GITLAB_DEFAULT_GROUP_NAME",
             "value": "ose3",
@@ -295,6 +301,10 @@
                                     {
                                         "name": "GITLAB_DEFAULT_USER_FULLNAME",
                                         "value": "${GITLAB_DEFAULT_USER_FULLNAME}"
+                                    },
+                                    {
+                                        "name": "GITLAB_DEFAULT_USER_PROJECT_LIMIT",
+                                        "value": "${GITLAB_DEFAULT_USER_PROJECT_LIMIT}"
                                     },
                                     {
                                         "name": "GITLAB_DEFAULT_GROUP_NAME",
