@@ -202,7 +202,7 @@
                     "git": {
                         "uri": "https://github.com/jpechane/openshift-templates.git"
                     },
-                    "contextDir": "ce/docker-build/docker"
+                    "contextDir": "gitlab/ce/docker-build/docker"
                 },
                 "strategy": {
                     "type": "Docker",
