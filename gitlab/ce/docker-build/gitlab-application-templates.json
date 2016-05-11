@@ -293,6 +293,18 @@
                                         "protocol": "TCP"
                                     }
                                 ],
+                                "readinessProbe": {
+                                	"exec": {
+                                		"command": [
+                                			"curl",
+                                			"-s",
+                                			"-XPOST",
+                                			"-Flogin=root",
+                                			"-Fpassword=$GITLAB_ROOT_PASSWORD",
+                                			"http://localhost:80/api/v3/session"
+                                			]
+                                	}
+                                },
                                 "env": [
                                     {
                                         "name": "GITLAB_HOST",
