@@ -91,30 +91,17 @@
             "spec": {
                 "ports": [
                     {
+                        "name": "ssh",
+                        "port": 22,
+                        "targetPort": 22
+                    },
+                    {
+                        "name": "http",
                         "port": 80,
                         "targetPort": 80
-                    }
-                ],
-                "selector": {
-                    "deploymentConfig": "${APPLICATION_NAME}"
-                }
-            },
-            "metadata": {
-                "name": "${APPLICATION_NAME}-http",
-                "labels": {
-                    "application": "${APPLICATION_NAME}"
-                },
-                "annotations": {
-                    "description": "The GitLab's http port."
-                }
-            }
-        },
-        {
-            "kind": "Service",
-            "apiVersion": "v1",
-            "spec": {
-                "ports": [
+                    },
                     {
+                        "name": "https",
                         "port": 443,
                         "targetPort": 443
                     }
@@ -124,43 +111,19 @@
                 }
             },
             "metadata": {
-                "name": "${APPLICATION_NAME}-https",
+                "name": "${APPLICATION_NAME}",
                 "labels": {
                     "application": "${APPLICATION_NAME}"
                 },
                 "annotations": {
-                    "description": "The GitLab's https port."
-                }
-            }
-        },
-        {
-            "kind": "Service",
-            "apiVersion": "v1",
-            "spec": {
-                "ports": [
-                    {
-                        "port": 22,
-                        "targetPort": 22
-                    }
-                ],
-                "selector": {
-                    "deploymentConfig": "${APPLICATION_NAME}"
-                }
-            },
-            "metadata": {
-                "name": "${APPLICATION_NAME}-ssh",
-                "labels": {
-                    "application": "${APPLICATION_NAME}"
-                },
-                "annotations": {
-                    "description": "The GitLab's ssh port."
+                    "description": "The GitLab's ports."
                 }
             }
         },
         {
             "kind": "Route",
             "apiVersion": "v1",
-            "id": "${APPLICATION_NAME}-http",
+            "id": "${APPLICATION_NAME}",
             "metadata": {
                 "name": "${APPLICATION_NAME}",
                 "labels": {
@@ -173,7 +136,10 @@
             "spec": {
                 "host": "${GITLAB_HOSTNAME}",
                 "to": {
-                    "name": "${APPLICATION_NAME}-http"
+                    "name": "${APPLICATION_NAME}"
+                },
+                "port": {
+                    "targetPort": "http"
                 }
             }
         },
